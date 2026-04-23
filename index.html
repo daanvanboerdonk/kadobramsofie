@@ -134,6 +134,10 @@
       width: 100%;
       height: 100%;
       display: block;
+      object-fit: contain;
+      background: #000;
+      outline: none;
+      pointer-events: none;
     }
 
     #overlay {
@@ -200,7 +204,15 @@
 
   <section id="video" class="hidden" aria-hidden="true">
     <div id="player-wrap">
-      <div id="player"></div>
+      <video id="player"
+             src="stop.mp4"
+             preload="auto"
+             playsinline
+             webkit-playsinline
+             disablepictureinpicture
+             disableremoteplayback
+             x-webkit-airplay="deny"
+             controlslist="nodownload noremoteplayback noplaybackrate nofullscreen"></video>
       <div id="overlay"></div>
     </div>
   </section>
@@ -216,64 +228,54 @@
   </section>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    const VIDEO_ID = '5JD6ejmlpa8';
-
     const startSection = document.getElementById('start');
     const videoSection = document.getElementById('video');
     const giftSection  = document.getElementById('gift');
     const startBtn     = document.getElementById('start-btn');
     const startHint    = document.getElementById('start-hint');
+    const player       = document.getElementById('player');
 
-    let player;
-    let videoReady = false;
     let ended = false;
 
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player('player', {
-        videoId: VIDEO_ID,
-        playerVars: {
-          controls: 0,
-          disablekb: 1,
-          modestbranding: 1,
-          rel: 0,
-          playsinline: 1,
-          fs: 0,
-          iv_load_policy: 3,
-          autoplay: 0
-        },
-        events: {
-          onReady: () => {
-            videoReady = true;
-            startBtn.disabled = false;
-            startHint.textContent = '';
-          },
-          onStateChange: onStateChange,
-          onError: (e) => {
-            startHint.textContent = 'Oeps — video kon niet laden (code ' + e.data + ')';
-          }
-        }
-      });
+    // Enable the start button as soon as the browser thinks it can play through.
+    // Fall back to 'canplay' (needs less buffering) and a hard timeout, in case
+    // the browser is conservative about 'canplaythrough' over a slow network.
+    function markReady() {
+      startBtn.disabled = false;
+      startHint.textContent = '';
     }
+    player.addEventListener('canplaythrough', markReady, { once: true });
+    player.addEventListener('canplay', markReady, { once: true });
+    setTimeout(markReady, 4000);
 
-    function onStateChange(e) {
+    player.addEventListener('error', () => {
+      startHint.textContent = 'Oeps — video kon niet laden.';
+    });
+
+    // Resume immediately if anything pauses the video before it ends.
+    player.addEventListener('pause', () => {
       if (ended) return;
-      if (e.data === YT.PlayerState.PAUSED) {
-        player.playVideo();
-      } else if (e.data === YT.PlayerState.ENDED) {
-        ended = true;
-        showGift();
-      }
-    }
+      player.play().catch(() => {});
+    });
+
+    player.addEventListener('ended', () => {
+      ended = true;
+      showGift();
+    });
 
     function startVideo() {
       startSection.classList.add('hidden');
       videoSection.classList.remove('hidden');
       videoSection.setAttribute('aria-hidden', 'false');
-      try { player.unMute(); } catch (_) {}
-      try { player.setVolume(100); } catch (_) {}
-      player.playVideo();
+      player.muted = false;
+      player.volume = 1;
+      const p = player.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          startHint.textContent = 'Tik nog een keer…';
+        });
+      }
     }
 
     function showGift() {
@@ -281,7 +283,7 @@
       videoSection.setAttribute('aria-hidden', 'true');
       giftSection.classList.remove('hidden');
       giftSection.setAttribute('aria-hidden', 'false');
-      try { player.stopVideo(); } catch (_) {}
+      player.pause();
       fireConfetti();
     }
 
@@ -319,17 +321,18 @@
     }
 
     startBtn.addEventListener('click', () => {
-      if (!videoReady) return;
+      if (startBtn.disabled) return;
       startVideo();
     });
 
-    // Block interactions with the video area (overlay catches clicks/taps,
-    // but also prevent context menu and keyboard shortcuts globally once playing).
+    // Block right-click and keyboard scrubbing on the video while it plays.
     document.getElementById('overlay').addEventListener('contextmenu', e => e.preventDefault());
+    player.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', (e) => {
       if (videoSection.classList.contains('hidden')) return;
-      // Block space, arrow keys, k, j, l, f, m — common YouTube shortcuts.
-      const blocked = [' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'k', 'K', 'j', 'J', 'l', 'L', 'f', 'F', 'm', 'M'];
+      const blocked = [' ', 'Spacebar', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                       'k', 'K', 'j', 'J', 'l', 'L', 'f', 'F', 'm', 'M',
+                       'Home', 'End', 'PageUp', 'PageDown'];
       if (blocked.includes(e.key)) {
         e.preventDefault();
         e.stopPropagation();
