@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="robots" content="noindex">
+  <title>Een cadeau voor jullie</title>
+  <style>
+    :root {
+      --cream: #fdf6ee;
+      --blush: #f4c6c0;
+      --rose: #d98a88;
+      --plum: #5a2d3a;
+      --gold: #c9a86a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: Georgia, "Times New Roman", serif;
+      background: var(--cream);
+      color: var(--plum);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    section {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 2rem;
+      text-align: center;
+      transition: opacity 0.6s ease;
+    }
+
+    section.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ---------- START SCREEN ---------- */
+    #start {
+      background: radial-gradient(circle at 50% 30%, #fff 0%, var(--cream) 45%, var(--blush) 100%);
+    }
+
+    #start .decor {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.85;
+    }
+
+    #start h1 {
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      font-weight: normal;
+      font-style: italic;
+      margin: 0 0 0.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    #start .names {
+      font-size: clamp(1rem, 3.5vw, 1.3rem);
+      color: var(--rose);
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    #start-btn {
+      font-family: inherit;
+      font-size: clamp(1.1rem, 4vw, 1.4rem);
+      padding: 1.1rem 2.2rem;
+      border: none;
+      border-radius: 999px;
+      background: var(--plum);
+      color: var(--cream);
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(90, 45, 58, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+      letter-spacing: 0.03em;
+    }
+
+    #start-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(90, 45, 58, 0.32);
+    }
+
+    #start-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    #start-btn:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    #start .hint {
+      margin-top: 1.2rem;
+      font-size: 0.85rem;
+      color: var(--rose);
+      font-style: italic;
+      min-height: 1.2em;
+    }
+
+    /* ---------- VIDEO SCREEN ---------- */
+    #video {
+      background: #000;
+      padding: 0;
+    }
+
+    #player-wrap {
+      position: relative;
+      width: 100vw;
+      height: 56.25vw;
+      max-height: 100vh;
+      max-width: 177.78vh;
+    }
+
+    #player {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      background: transparent;
+      cursor: default;
+    }
+
+    /* ---------- GIFT SCREEN ---------- */
+    #gift {
+      background: radial-gradient(circle at 50% 40%, #fff 0%, var(--cream) 60%, var(--blush) 100%);
+    }
+
+    #gift .gift-content {
+      max-width: 32rem;
+      animation: gift-in 0.8s ease 0.2s both;
+    }
+
+    #gift .sparkle {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    #gift h1 {
+      font-size: clamp(2rem, 7vw, 3.2rem);
+      font-weight: normal;
+      font-style: italic;
+      margin: 0 0 1.5rem;
+      color: var(--plum);
+    }
+
+    #gift p {
+      font-size: clamp(1.05rem, 3.5vw, 1.25rem);
+      line-height: 1.6;
+      margin: 0 0 1rem;
+    }
+
+    #gift .eefje {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: var(--rose);
+      font-style: italic;
+      letter-spacing: 0.05em;
+    }
+
+    @keyframes gift-in {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <section id="start">
+    <div class="decor">💛</div>
+    <h1>Een cadeau voor jullie</h1>
+    <div class="names">Bram &amp; Sofie</div>
+    <button id="start-btn" disabled>🎁 Klik hier voor jullie cadeau</button>
+    <div class="hint" id="start-hint">Even laden…</div>
+  </section>
+
+  <section id="video" class="hidden" aria-hidden="true">
+    <div id="player-wrap">
+      <div id="player"></div>
+      <div id="overlay"></div>
+    </div>
+  </section>
+
+  <section id="gift" class="hidden" aria-hidden="true">
+    <div class="gift-content">
+      <div class="sparkle">🎉✨</div>
+      <h1>Gefeliciteerd!</h1>
+      <p>Jullie hebben je doel bereikt en jullie hebben je cadeau verdiend.</p>
+      <p>Stuur een foto van deze pagina naar Eefje, en zij gaat het regelen.</p>
+      <div class="eefje">— met liefde</div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    const VIDEO_ID = '5JD6ejmlpa8';
+
+    const startSection = document.getElementById('start');
+    const videoSection = document.getElementById('video');
+    const giftSection  = document.getElementById('gift');
+    const startBtn     = document.getElementById('start-btn');
+    const startHint    = document.getElementById('start-hint');
+
+    let player;
+    let videoReady = false;
+    let ended = false;
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        videoId: VIDEO_ID,
+        playerVars: {
+          controls: 0,
+          disablekb: 1,
+          modestbranding: 1,
+          rel: 0,
+          playsinline: 1,
+          fs: 0,
+          iv_load_policy: 3,
+          autoplay: 0
+        },
+        events: {
+          onReady: () => {
+            videoReady = true;
+            startBtn.disabled = false;
+            startHint.textContent = '';
+          },
+          onStateChange: onStateChange,
+          onError: (e) => {
+            startHint.textContent = 'Oeps — video kon niet laden (code ' + e.data + ')';
+          }
+        }
+      });
+    }
+
+    function onStateChange(e) {
+      if (ended) return;
+      if (e.data === YT.PlayerState.PAUSED) {
+        player.playVideo();
+      } else if (e.data === YT.PlayerState.ENDED) {
+        ended = true;
+        showGift();
+      }
+    }
+
+    function startVideo() {
+      startSection.classList.add('hidden');
+      videoSection.classList.remove('hidden');
+      videoSection.setAttribute('aria-hidden', 'false');
+      try { player.unMute(); } catch (_) {}
+      try { player.setVolume(100); } catch (_) {}
+      player.playVideo();
+    }
+
+    function showGift() {
+      videoSection.classList.add('hidden');
+      videoSection.setAttribute('aria-hidden', 'true');
+      giftSection.classList.remove('hidden');
+      giftSection.setAttribute('aria-hidden', 'false');
+      try { player.stopVideo(); } catch (_) {}
+      fireConfetti();
+    }
+
+    function fireConfetti() {
+      const colors = ['#d98a88', '#c9a86a', '#f4c6c0', '#ffffff', '#5a2d3a'];
+
+      confetti({
+        particleCount: 220,
+        spread: 110,
+        startVelocity: 45,
+        origin: { y: 0.4 },
+        colors: colors
+      });
+
+      const end = Date.now() + 10_000;
+      (function frame() {
+        confetti({
+          particleCount: 4,
+          angle: 60,
+          spread: 60,
+          startVelocity: 40,
+          origin: { x: 0, y: 0.7 },
+          colors: colors
+        });
+        confetti({
+          particleCount: 4,
+          angle: 120,
+          spread: 60,
+          startVelocity: 40,
+          origin: { x: 1, y: 0.7 },
+          colors: colors
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (!videoReady) return;
+      startVideo();
+    });
+
+    // Block interactions with the video area (overlay catches clicks/taps,
+    // but also prevent context menu and keyboard shortcuts globally once playing).
+    document.getElementById('overlay').addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', (e) => {
+      if (videoSection.classList.contains('hidden')) return;
+      // Block space, arrow keys, k, j, l, f, m — common YouTube shortcuts.
+      const blocked = [' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'k', 'K', 'j', 'J', 'l', 'L', 'f', 'F', 'm', 'M'];
+      if (blocked.includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  </script>
+</body>
+</html>
