@@ -330,6 +330,15 @@
       startVideo();
     });
 
+    // Preview shortcut: open with #gift to jump straight to the reveal.
+    if (window.location.hash === '#gift') {
+      ended = true;
+      startSection.classList.add('hidden');
+      giftSection.classList.remove('hidden');
+      giftSection.setAttribute('aria-hidden', 'false');
+      fireConfetti();
+    }
+
     // Block right-click and keyboard scrubbing on the video while it plays.
     document.getElementById('overlay').addEventListener('contextmenu', e => e.preventDefault());
     player.addEventListener('contextmenu', e => e.preventDefault());
